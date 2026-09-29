@@ -138,3 +138,167 @@ P4	3	1	2		13	10	9
 Average Waiting Time = 6.75
 Average Turnaround Time = 10.5
 ```
+
+## 2. Write a program to implement round robin algorithm with time quantam = 3 secs
+
+```cpp
+#include <iostream>
+#include <queue>
+using namespace std;
+
+struct Process {
+    int pid;
+    int at;     
+    int bt;     
+    int rt;     
+    int ct;     
+    int tat;    
+    int wt;     
+};
+
+int main() {
+    int n;
+    int tq = 3;
+
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    Process p[n];
+
+    for (int i = 0; i < n; i++) {
+        p[i].pid = i + 1;
+
+        cout << "\nProcess P" << i + 1 << endl;
+
+        cout << "Enter Arrival Time: ";
+        cin >> p[i].at;
+
+        cout << "Enter Burst Time: ";
+        cin >> p[i].bt;
+
+        p[i].rt = p[i].bt;
+    }
+
+    queue<int> q;
+    bool added[n] = {false};
+
+    int currentTime = 0;
+    int completed = 0;
+
+    while (completed < n) {
+
+        for (int i = 0; i < n; i++) {
+            if (!added[i] && p[i].at <= currentTime) {
+                q.push(i);
+                added[i] = true;
+            }
+        }
+
+        if (q.empty()) {
+            currentTime++;
+
+            continue;
+        }
+
+        int i = q.front();
+        q.pop();
+
+        int executionTime;
+
+        if (p[i].rt > tq)
+            executionTime = tq;
+        else
+            executionTime = p[i].rt;
+
+        currentTime += executionTime;
+        p[i].rt -= executionTime;
+
+        for (int j = 0; j < n; j++) {
+            if (!added[j] && p[j].at <= currentTime) {
+                q.push(j);
+                added[j] = true;
+            }
+        }
+
+        if (p[i].rt > 0) {
+            q.push(i);
+        }
+        else {
+            p[i].ct = currentTime;
+
+            p[i].tat = p[i].ct - p[i].at;
+
+            p[i].wt = p[i].tat - p[i].bt;
+
+            completed++;
+        }
+    }
+
+    cout << "\n\nRound Robin Scheduling";
+    cout << "\nTime Quantum = " << tq << " seconds\n\n";
+
+    cout << "---------------------------------------------------\n";
+    cout << "Process\tAT\tBT\tCT\tTAT\tWT\n";
+    cout << "---------------------------------------------------\n";
+
+    float totalWT = 0;
+    float totalTAT = 0;
+
+    for (int i = 0; i < n; i++) {
+
+        cout << "P" << p[i].pid << "\t"
+             << p[i].at << "\t"
+             << p[i].bt << "\t"
+             << p[i].ct << "\t"
+             << p[i].tat << "\t"
+             << p[i].wt << endl;
+
+        totalWT += p[i].wt;
+        totalTAT += p[i].tat;
+    }
+
+    cout << "---------------------------------------------------\n";
+
+    cout << "\nAverage Waiting Time = "
+         << totalWT / n << " seconds";
+
+    cout << "\nAverage Turnaround Time = "
+         << totalTAT / n << " seconds\n";
+
+    return 0;
+}
+```
+
+---
+
+
+```output
+Enter number of processes: 3
+
+Process P1
+Enter Arrival Time: 0
+Enter Burst Time: 5
+
+Process P2
+Enter Arrival Time: 1
+Enter Burst Time: 4
+
+Process P3
+Enter Arrival Time: 2
+Enter Burst Time: 2
+
+
+Round Robin Scheduling
+Time Quantum = 3 seconds
+
+---------------------------------------------------
+Process	AT	BT	CT	TAT	WT
+---------------------------------------------------
+P1	0	5	10	10	5
+P2	1	4	11	10	6
+P3	2	2	8	6	4
+---------------------------------------------------
+
+Average Waiting Time = 5 seconds
+Average Turnaround Time = 8.66667 seconds
+```
